@@ -20,7 +20,9 @@ header h1{font-size:18px;margin:0}
 .status.ok i{background:var(--accent)}
 main{max-width:760px;margin:0 auto;padding:12px 12px 0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-.card h2{font-size:15px;margin:0 0 10px;letter-spacing:.2px}
+.card{--h:#2f6f62;border-left:5px solid var(--h);overflow:hidden}
+.card:nth-of-type(5n+2){--h:#c9822b}.card:nth-of-type(5n+3){--h:#4a7fb8}.card:nth-of-type(5n+4){--h:#8a5aa6}.card:nth-of-type(5n+5){--h:#b84a4a}
+.card h2{font-size:17px;font-weight:700;margin:-14px -14px 12px;padding:10px 14px;letter-spacing:.2px;color:var(--h);background:color-mix(in srgb,var(--h) 14%,transparent);border-bottom:1px solid color-mix(in srgb,var(--h) 30%,transparent)}
 .muted{color:var(--muted)}
 .small{font-size:13px}
 .row{margin:10px 0}
@@ -145,14 +147,14 @@ var DRINKS=[['koffie','Koffie (kopjes)'],['thee','Thee (kopjes)'],['water','Wate
 var PHASES=['Observeren','Lage-histaminebasis','Terugvoeren'];
 var PHASE_ORDER=['Menstruatie','Folliculair','Rond ovulatie','Luteaal','Premenstrueel'];
 var TASKS=['Stofzuigen','Wassen','Schoonmaken','Koken','Tuin/buiten','Opruimen','Anders'];
-var OUTCOMES={eyes:'Dikke ogen',pressure:'Oogdruk',hives:'Bultjes',combined:'Alle klachten (gemiddeld)'};
+var OUTCOMES={eyes:'Dikke ogen',pressure:'Oogdruk',hives:'Bultjes',eczema:'Eczeem',combined:'Alle klachten (gemiddeld)'};
 
 var CAT_RULES=[
  ['Gerijpt / gefermenteerd / gerookt',function(n){
    return /(oude|belegen|extra belegen)\s*kaas|parmezaan|cheddar|gruy[eè]re|emmental|gorgonzola|blauwe kaas|camembert|\bbrie\b|salami|\bham\b|rookvlees|gerookt|\bworst\b|leverworst|filet americain|\bspek\b|bacon|tonijn|ansjovis|haring|makreel|sardine|zuurkool|kimchi|sojasaus|\bmiso\b|tempeh|azijn|ketchup|augurk|olijf|olijven|yoghurt|kefir|kombucha|zuurdesem|\bwijn\b|\bbier\b|champagne|prosecco|cider/.test(n)
    || (/kaas/.test(n) && !/room|verse|smeer|cottage|h[uü]ttenk|mozzarella|ricotta|mascarpone/.test(n));
  }],
- ['Histamine-vrijmaker',function(n){return /tomaat|tomaten|spinazie|aubergine|avocado|sinaasappel|mandarijn|citroen|grapefruit|limoen|citrus|aardbei|framboos|ananas|kiwi|papaja|banaan|chocola|cacao|pinda|noten|walnoot|cashew|amandel|hazelnoot|garnaal|kreeft|krab|schaaldier|linzen|kikkererwt|kidneyboon|witte bonen|bruine bonen|soja/.test(n);}],
+ ['Histamine-vrijmaker',function(n){return /tomaat|tomaten|spinazie|aubergine|avocado|sinaasappel|mandarijn|citroen|grapefruit|limoen|citrus|aardbei|framboos|ananas|kiwi|papaja|banaan|chocola|choco|cacao|m&m|smarties|snickers|twix|\bmars\b|bounty|kitkat|toblerone|nutella|praline|bonbon|pinda|noten|walnoot|cashew|amandel|hazelnoot|garnaal|kreeft|krab|schaaldier|linzen|kikkererwt|kidneyboon|witte bonen|bruine bonen|soja/.test(n);}],
  ['Zout / bewerkt',function(n){return /chips|friet|patat|kroket|frikandel|snack|pizza|bouillon|instant|noodle|bami|nasi|saus|pakje|pasteitje|saucijs/.test(n);}],
  ['Zuivel',function(n){return /melk|kaas|yoghurt|kwark|\broom\b|roomkaas|boter|vla|\bijs\b|pudding|slagroom/.test(n);}],
  ['Gluten / tarwe',function(n){return /brood|boterham|pasta|tarwe|spelt|rogge|koek|cracker|beschuit|pannenkoek|wrap|broodje|couscous|bulgur|croissant/.test(n);}],
@@ -183,16 +185,16 @@ function setPath(o,p,v){var ks=p.split('.');var last=ks.pop();var t=ks.reduce(fu
 function mondayOf(s){var d=parse(s);var wd=(d.getDay()+6)%7;d.setDate(d.getDate()-wd);return fmt(d);}
 
 /* ================= state ================= */
-var S={days:{},settings:null,date:todayStr(),tab:'dag',weekStart:null,outcome:'eyes',lag:0,range:60,metric:'koffie',user:null,msg:'',msgType:'',focus:null};
+var S={days:{},settings:null,date:todayStr(),tab:'dag',weekStart:null,outcome:'eyes',lag:1,range:60,metric:'koffie',user:null,msg:'',msgType:'',focus:null};
 var db=null,auth=null,unsubDays=null,unsubSet=null,remoteTimes={},firstSnap=true,timers={};
 
 function blankDay(date){
   return {date:date,updatedAt:0,
-    sym:{eyes:null,pressure:null,hives:null,where:'',when:'',hivesDur:''},
+    sym:{eyes:null,pressure:null,hives:null,eczema:null,where:'',when:'',hivesDur:'',floaters:false},
     meals:{ontbijt:[],lunch:[],diner:[],tussendoor:[]},
     drinks:{koffie:0,thee:0,water:0,frisdrank:0,alcohol:0},
     meds:{},
-    cyc:{mens:false,first:false,kramp:null,vocht:null,hoofd:null,stemming:null,vlam:null},
+    cyc:{mens:false,first:false,intimate:false,kramp:null,vocht:null,hoofd:null,stemming:null,vlam:null},
     body:{weight:null,sleep:null,sleepQ:null,stress:null},
     act:{work:'',bikeWork:false,dog:0,train:false,walk:false,minutes:null,intensity:'',sweat:false},
     house:{tasks:[],shop:false},
@@ -334,8 +336,8 @@ function dayKcal(d){var s=0;MEALS.forEach(function(m){(d.meals[m[0]]||[]).forEac
 function itemNames(d){var a=[];MEALS.forEach(function(m){(d.meals[m[0]]||[]).forEach(function(i){var n=norm(i.name);if(n)a.push(n);});});return a;}
 function outcomeOf(day,kind){
   if(!day)return null;var s=day.sym||{};
-  if(kind==='eyes')return s.eyes;if(kind==='pressure')return s.pressure;if(kind==='hives')return s.hives;
-  var v=[s.eyes,s.pressure,s.hives].filter(function(x){return x!=null;});return v.length?mean(v):null;
+  if(kind==='eyes')return s.eyes;if(kind==='pressure')return s.pressure;if(kind==='hives')return s.hives;if(kind==='eczema')return s.eczema;
+  var v=[s.eyes,s.pressure,s.hives,s.eczema].filter(function(x){return x!=null;});return v.length?mean(v):null;
 }
 function lastKcalMap(){
   var m={};Object.keys(S.days).sort().forEach(function(k){MEALS.forEach(function(ml){(S.days[k].meals[ml[0]]||[]).forEach(function(i){if(i.kcal!=null)m[norm(i.name)]=i.kcal;});});});return m;
@@ -516,11 +518,12 @@ function viewDag(){
      '</div><button data-act="nextday" aria-label="Volgende dag">›</button></div>';
   if(S.date!==todayStr())h+='<div style="text-align:center;margin:-4px 0 10px"><button class="btn ghost" data-act="today">Naar vandaag</button></div>';
 
-  h+='<div class="card"><h2>Klachten</h2>'+sc4('sym.eyes','Dikke ogen',d)+sc4('sym.pressure','Oogdruk',d)+sc4('sym.hives','Bultjes',d)+
+  h+='<div class="card"><h2>Klachten</h2>'+sc4('sym.eyes','Dikke ogen',d)+sc4('sym.pressure','Oogdruk',d)+sc4('sym.hives','Bultjes',d)+sc4('sym.eczema','Eczeemplekken',d)+
      '<div class="row"><div class="lbl">Waar zitten de bultjes?</div><input data-in="sym.where" style="width:100%" value="'+esc(d.sym.where)+'" placeholder="bijv. gezicht, armen"></div>'+
      '<div class="row"><div class="lbl">Wanneer had je er het meeste last van?</div>'+choice('sym.when',[['ochtend','Ochtend'],['middag','Middag'],['avond','Avond'],['hele dag','Hele dag']],d)+'</div>'+
      '<div class="row"><div class="lbl">Hoe lang blijven de bultjes?</div>'+choice('sym.hivesDur',[['<24u','Korter dan 24 uur'],['>24u','Langer dan 24 uur']],d)+'</div>'+
-     '<div class="muted small">Noteer \'s avonds hoe de dag was. Bij de analyse kun je ook de dag erna laten meetellen.</div></div>';
+     '<div class="chips" style="margin-bottom:6px">'+toggle('sym.floaters','Mouches / vlekjes in beeld',d)+'</div>'+
+     '<div class="muted small">Vul \'s ochtends in hoe je wakker werd. De analyse koppelt dat standaard aan wat je de dag ervoor deed en at.</div></div>';
 
   h+='<div class="card"><h2>Eten'+(total?' <span class="muted small">· '+total+' kcal ('+dayKj(d)+' kJ) vandaag</span>':'')+'</h2>'+MEALS.map(function(m){return mealBlock(d,m);}).join('')+'<div class="muted small" style="margin-top:8px">Typ een product: de app zoekt in NEVO en stelt kcal en kJ voor (tik op een suggestie). Gewicht per stuk, snee of plak zijn eigen schattingen. Staat er op de verpakking alleen kJ? Typ dan bijvoorbeeld 840kj in het kcal-veld.<br>'+NEVO_REF+'.</div></div>';
 
@@ -530,7 +533,7 @@ function viewDag(){
 
   h+='<div class="card"><h2>Medicatie en producten</h2><div class="chips">'+S.settings.meds.map(function(m){return toggle('meds.'+m.id,m.name,d);}).join('')+'</div><div class="muted small" style="margin-top:8px">Beheer de lijst via Meer.</div></div>';
 
-  h+='<div class="card"><h2>Cyclus</h2><div class="chips">'+toggle('cyc.first','Eerste dag nieuwe cyclus',d)+toggle('cyc.mens','Menstruatie vandaag',d)+'</div>'+
+  h+='<div class="card"><h2>Cyclus</h2><div class="chips">'+toggle('cyc.first','Eerste dag nieuwe cyclus',d)+toggle('cyc.mens','Menstruatie vandaag',d)+toggle('cyc.intimate','Intiem geweest',d)+'</div>'+
      sc4('cyc.kramp','Kramp / buikpijn',d)+sc4('cyc.vocht','Opgeblazen / vocht vasthouden',d)+sc4('cyc.hoofd','Hoofdpijn',d)+sc4('cyc.stemming','Stemming laag',d)+sc4('cyc.vlam','Opvliegers / nachtzweten',d)+'</div>';
 
   h+='<div class="card"><h2>Lichaam</h2><div class="inline"><div><div class="lbl">Gewicht (kg)</div><input data-in="body.weight" data-type="num" inputmode="decimal" style="width:100%" value="'+(d.body.weight==null?'':String(d.body.weight).replace('.',','))+'"></div>'+
@@ -625,8 +628,8 @@ function viewGrafiek(){
   var get=function(fn){return dates.map(function(dt){var d=S.days[dt];return d?fn(d):null;});};
   var h='<div class="card"><div class="inline"><div><div class="lbl">Periode</div><select data-sel="range" style="width:100%">'+[[30,'30 dagen'],[60,'60 dagen'],[90,'90 dagen'],[0,'Alles']].map(function(x){return '<option value="'+x[0]+'"'+(S.range===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select></div></div></div>';
   h+='<div class="card"><h2>Klachten</h2>'+chart({dates:dates,label:'Klachten',ymin:0,ymax:3,ticks:3,shade:shade,series:[
-     {vals:get(function(d){return d.sym.eyes;}),color:'#2f8f7a'},{vals:get(function(d){return d.sym.pressure;}),color:'#c9822b'},{vals:get(function(d){return d.sym.hives;}),color:'#b84a4a'}]})+
-     '<div class="legend"><span style="--c:#2f8f7a">Dikke ogen</span><span style="--c:#c9822b">Oogdruk</span><span style="--c:#b84a4a">Bultjes</span><span style="--c:var(--shade1)">Menstruatie</span><span style="--c:var(--shade2)">5 dagen ervoor</span></div></div>';
+     {vals:get(function(d){return d.sym.eyes;}),color:'#2f8f7a'},{vals:get(function(d){return d.sym.pressure;}),color:'#c9822b'},{vals:get(function(d){return d.sym.hives;}),color:'#b84a4a'},{vals:get(function(d){return d.sym.eczema;}),color:'#7a5aa6'}]})+
+     '<div class="legend"><span style="--c:#2f8f7a">Dikke ogen</span><span style="--c:#c9822b">Oogdruk</span><span style="--c:#b84a4a">Bultjes</span><span style="--c:#7a5aa6">Eczeem</span><span style="--c:var(--shade1)">Menstruatie</span><span style="--c:var(--shade2)">5 dagen ervoor</span></div></div>';
   var M={koffie:['Koffie (kopjes)',function(d){return d.drinks.koffie||null;},'bar'],kcal:['Calorieën',function(d){return dayKcal(d)||null;},'bar'],slaap:['Slaap (uren)',function(d){return d.body.sleep;},'line'],gewicht:['Gewicht (kg)',function(d){return d.body.weight;},'line'],stress:['Stress (0–3)',function(d){return d.body.stress;},'line'],water:['Water (glazen)',function(d){return d.drinks.water||null;},'bar'],alcohol:['Alcohol (glazen)',function(d){return d.drinks.alcohol||null;},'bar'],vocht:['Opgeblazen / vocht (0–3)',function(d){return d.cyc.vocht;},'line']};
   var m=M[S.metric]||M.koffie,vals=get(m[1]),nn=vals.filter(function(x){return x!=null;});
   var ymin=0,ticks=4,mx=nn.length?Math.max.apply(null,nn):1,ymax;
@@ -660,7 +663,7 @@ function buildRecords(model){
       valid:items.size>=2||d.drinks.koffie>0||d.drinks.thee>0||d.drinks.water>0||d.drinks.alcohol>0,
       logged:items.size>=2,sleep:d.body.sleep,sleepQ:d.body.sleepQ,stress:d.body.stress,work:d.act.work,
       moved:!!(d.act.bikeWork||d.act.train||d.act.walk||d.act.dog>0||d.act.minutes>0),meds:d.meds,anyMed:anyMed,
-      leftover:leftover,cigs:d.smoke.cigs||0,intensity:d.act.intensity,sweat:!!d.act.sweat};
+      leftover:leftover,cigs:d.smoke.cigs||0,intensity:d.act.intensity,sweat:!!d.act.sweat,intimate:!!d.cyc.intimate};
   });
 }
 function sigCell(v){return '<span class="sig-'+v.sig+'">'+(v.sig==='geen'?'geen verband':v.sig)+'</span>';}
@@ -704,6 +707,7 @@ function viewAnalyse(){
          ['Bewogen (fiets/training/wandeling/hond)',valid,function(r){return r.moved;}],
          ['Matig of zwaar bewogen',withOut.filter(function(r){return r.intensity||r.moved;}),function(r){return r.intensity==='matig'||r.intensity==='zwaar';}],
          ['Warm geworden / gezweet',withOut,function(r){return r.sweat;}],
+         ['Intiem geweest',withOut,function(r){return r.intimate;}],
          ['Restje gegeten (ouder dan 1 dag)',withOut.filter(function(r){return r.logged;}),function(r){return r.leftover;}],
          ['Gerookt',withOut,function(r){return r.cigs>0;}],
          ['Nicotinepleister, -kauwgom of vape',withOut,function(r){return !!r.day.smoke.nicotine;}],
@@ -780,7 +784,7 @@ function viewAnalyse(){
 
   var whenC={},durC={'<24u':0,'>24u':0},whenN=0,durN=0;
   recs.forEach(function(r){
-    var s=r.day.sym,bad=(s.eyes>0)||(s.pressure>0)||(s.hives>0);
+    var s=r.day.sym,bad=(s.eyes>0)||(s.pressure>0)||(s.hives>0)||(s.eczema>0);
     if(s.when&&bad){whenC[s.when]=(whenC[s.when]||0)+1;whenN++;}
     if(s.hivesDur&&s.hives>0){durC[s.hivesDur]++;durN++;}
   });
@@ -879,15 +883,15 @@ function download(name,text,type){
 function csvCell(v){v=v==null?'':String(v);return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function exportCSV(){
   var model=cycleModel(),meds=S.settings.meds;
-  var head=['datum','dikke_ogen','oogdruk','bultjes','bultjes_waar','kcal','kj'].concat(MEALS.map(function(m){return m[0];}),DRINKS.map(function(x){return x[0];}),meds.map(function(m){return m.name;}),
-    ['klacht_moment','bultjes_duur','stuifmeel','verwarming','beddengoed_verschoond','nieuw_middel','sigaretten','nicotine','intensiteit','gezweet','menstruatie','eerste_dag_cyclus','cyclusdag','cyclusfase','kramp','opgeblazen_vocht','hoofdpijn','stemming_laag','opvliegers','gewicht','slaap_uren','slaapkwaliteit','stress','werk','fiets_naar_werk','hond_rondes','training','wandeling','beweegminuten','huishouden','boodschappen','mensen_werk','mensen_thuis','testfase','testproduct','notities']);
+  var head=['datum','dikke_ogen','oogdruk','bultjes','eczeem','bultjes_waar','kcal','kj'].concat(MEALS.map(function(m){return m[0];}),DRINKS.map(function(x){return x[0];}),meds.map(function(m){return m.name;}),
+    ['klacht_moment','bultjes_duur','mouches','stuifmeel','verwarming','beddengoed_verschoond','nieuw_middel','sigaretten','nicotine','intensiteit','gezweet','menstruatie','eerste_dag_cyclus','cyclusdag','cyclusfase','intiem','kramp','opgeblazen_vocht','hoofdpijn','stemming_laag','opvliegers','gewicht','slaap_uren','slaapkwaliteit','stress','werk','fiets_naar_werk','hond_rondes','training','wandeling','beweegminuten','huishouden','boodschappen','mensen_werk','mensen_thuis','testfase','testproduct','notities']);
   var rows=Object.keys(S.days).sort().map(function(k){
     var d=S.days[k],ci=cycleInfo(k,model);
-    var row=[k,d.sym.eyes,d.sym.pressure,d.sym.hives,d.sym.where,dayKcal(d)||'',dayKcal(d)?dayKj(d):''];
+    var row=[k,d.sym.eyes,d.sym.pressure,d.sym.hives,d.sym.eczema,d.sym.where,dayKcal(d)||'',dayKcal(d)?dayKj(d):''];
     MEALS.forEach(function(m){row.push((d.meals[m[0]]||[]).map(function(i){return i.name+(i.g!=null?' '+i.g+(i.u||'g'):'')+(i.kcal!=null?' ('+i.kcal+')':'')+(i.fresh&&i.fresh!=='vers'?' ['+(i.fresh==='diepvries'?'ingevroren':i.fresh)+']':'');}).join('; '));});
     DRINKS.forEach(function(x){row.push(d.drinks[x[0]]||0);});
     meds.forEach(function(m){row.push(d.meds[m.id]?1:0);});
-    row=row.concat([d.sym.when,d.sym.hivesDur,d.env.pollen?1:0,d.env.heating?1:0,d.env.bedding?1:0,d.env.cleaning?1:0,d.smoke.cigs||0,d.smoke.nicotine?1:0,d.act.intensity,d.act.sweat?1:0,d.cyc.mens?1:0,d.cyc.first?1:0,ci?ci.day:'',ci&&ci.phase?ci.phase:'',d.cyc.kramp,d.cyc.vocht,d.cyc.hoofd,d.cyc.stemming,d.cyc.vlam,
+    row=row.concat([d.sym.when,d.sym.hivesDur,d.sym.floaters?1:0,d.env.pollen?1:0,d.env.heating?1:0,d.env.bedding?1:0,d.env.cleaning?1:0,d.smoke.cigs||0,d.smoke.nicotine?1:0,d.act.intensity,d.act.sweat?1:0,d.cyc.mens?1:0,d.cyc.first?1:0,ci?ci.day:'',ci&&ci.phase?ci.phase:'',d.cyc.intimate?1:0,d.cyc.kramp,d.cyc.vocht,d.cyc.hoofd,d.cyc.stemming,d.cyc.vlam,
       d.body.weight==null?'':String(d.body.weight).replace('.',','),d.body.sleep==null?'':String(d.body.sleep).replace('.',','),d.body.sleepQ,d.body.stress,d.act.work,d.act.bikeWork?1:0,d.act.dog||0,d.act.train?1:0,d.act.walk?1:0,d.act.minutes,
       d.house.tasks.join('; '),d.house.shop?1:0,d.people.work.join('; '),d.people.home.join('; '),d.test.phase,d.test.product,d.notes]);
     return row.map(csvCell).join(';');
