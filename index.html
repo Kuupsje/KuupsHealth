@@ -357,7 +357,7 @@ function refreshLists(){
 /* ================= NEVO zoeken ================= */
 var NEVO_REF='Gebaseerd op gegevens van NEVO-online versie 2025/9.0, RIVM, Bilthoven en andere gegevens';
 var NEV=null,NEV_BY={};
-function nvNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9%+ ]+/g,' ').replace(/\s+/g,' ').trim();}
+function nvNorm(s){return String(s||'').toLowerCase().replace(/\bm\s*&\s*m(?:'|\u2019)?s?(?![a-z])/g,'smarties').replace(/\bmms\b/g,'smarties').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9%+ ]+/g,' ').replace(/\s+/g,' ').trim();}
 function nevIndex(){
   if(NEV)return NEV;
   NEV=(typeof NEVO_DATA!=='undefined'?NEVO_DATA:[]).map(function(r){
